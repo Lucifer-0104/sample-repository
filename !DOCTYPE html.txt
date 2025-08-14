@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Monisa — Nice to meet you!</title>
+  <!-- Social/link preview so it looks good when you share -->
+  <meta property="og:title" content="Monisa — Nice to meet you!"/>
+  <meta property="og:description" content="A tiny animated greeting you can open on any phone or laptop."/>
+  <meta property="og:type" content="website"/>
+  <meta name="theme-color" content="#7c3aed"/>
+  <style>
+    :root{
+      --bg1: #fff7fb; --bg2:#f0f9ff; --bg3:#f5fff4; --ink:#111827;
+      --muted:#6b7280; --accent:#7c3aed; --accent2:#2563eb; --accent3:#10b981;
+      --card: rgba(255,255,255,.85); --radius: 24px; --shadow: 0 12px 30px rgba(0,0,0,.08);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", Helvetica, sans-serif; color:var(--ink);}
+    body{
+      background:
+        radial-gradient(1000px 600px at 15% 10%, var(--bg1), transparent 60%),
+        radial-gradient(800px 600px at 85% 20%, var(--bg2), transparent 60%),
+        radial-gradient(900px 700px at 50% 100%, var(--bg3), transparent 60%),
+        linear-gradient(180deg, #ffffff, #fafafa);
+      background-attachment: fixed;
+    }
+    .wrap{min-height:100%;display:grid;place-items:center;padding:24px}
+    .card{position:relative;width:min(780px,94vw);border-radius:var(--radius);background:var(--card);backdrop-filter: blur(10px);box-shadow:var(--shadow);overflow:hidden}
+    .stage{aspect-ratio:16/9;display:grid;place-items:center;padding:24px;position:relative}
+    .badge{position:absolute;top:14px;right:14px;background:#111827;color:#fff;padding:6px 12px;border-radius:999px;font-size:12px;opacity:.9}
+
+    /* Floating soft blobs */
+    .blob{position:absolute;border-radius:50%;filter:blur(18px);opacity:.35;animation:float 14s ease-in-out infinite}
+    .b1{width:160px;height:160px;left:-40px;bottom:-40px;background:#c4b5fd;animation-delay:0s}
+    .b2{width:220px;height:220px;right:-60px;top:-60px;background:#a7f3d0;animation-delay:2s}
+    .b3{width:120px;height:120px;right:30%;bottom:-30px;background:#93c5fd;animation-delay:4s}
+    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-16px)}}
+
+    /* Cinematic timeline */
+    h1{margin:0;font-size:clamp(40px,8vw,84px);line-height:1.05;font-weight:800;
+       background:linear-gradient(90deg,var(--accent),var(--accent2),var(--accent3));
+       -webkit-background-clip:text;background-clip:text;color:transparent;opacity:0;transform:translateY(24px)}
+    .subtitle{margin:8px 0 0; font-size:clamp(16px,2.6vw,22px); color:var(--muted); opacity:0; transform:translateY(18px)}
+    .closing{margin-top:14px;font-size:clamp(14px,2.2vw,18px);opacity:0}
+
+    .progress{position:absolute;left:0;right:0;bottom:0;height:4px;background:rgba(0,0,0,.06)}
+    .bar{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .2s ease}
+
+    .controls{display:flex;gap:10px;justify-content:center;padding:14px;border-top:1px solid rgba(0,0,0,.06);background:rgba(255,255,255,.6)}
+    .btn{border:0;border-radius:12px;padding:10px 14px;font-weight:600;cursor:pointer;background:#111827;color:#fff;box-shadow:0 6px 16px rgba(0,0,0,.12)}
+    .btn.secondary{background:#fff;color:#111827;border:1px solid #e5e7eb}
+
+    /* Sparkles */
+    .sparkle{position:absolute;font-size:22px;opacity:0;transform:scale(.8)}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="card" role="main" aria-labelledby="title">
+      <div class="stage" id="stage">
+        <div class="badge">🎬 Auto‑play Greeting</div>
+        <div class="blob b1"></div>
+        <div class="blob b2"></div>
+        <div class="blob b3"></div>
+
+        <h1 id="title">Monisa</h1>
+        <p class="subtitle">Nice to meet you!</p>
+        <p class="closing">💖 Have a wonderful day ahead.</p>
+
+        <!-- sparkles will be injected here -->
+        <div class="progress" aria-hidden="true"><div class="bar" id="bar"></div></div>
+      </div>
+      <div class="controls">
+        <button class="btn" id="replay">Replay</button>
+        <button class="btn secondary" id="share">Copy Share Link</button>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // Simple timeline using Web Animations API
+    const title = document.querySelector('h1');
+    const subtitle = document.querySelector('.subtitle');
+    const closing = document.querySelector('.closing');
+    const bar = document.getElementById('bar');
+    const stage = document.getElementById('stage');
+
+    function animateSparkles(){
+      const emojis = ['✨','💫','🌟','💖'];
+      for(let i=0;i<10;i++){
+        const s = document.createElement('div');
+        s.className = 'sparkle';
+        s.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+        s.style.left = Math.random()*90+5 + '%';
+        s.style.top = Math.random()*70+10 + '%';
+        stage.appendChild(s);
+        s.animate([{opacity:0, transform:'translateY(6px) scale(.8)'},{opacity:1, transform:'translateY(-8px) scale(1)'},{opacity:0, transform:'translateY(-16px) scale(.9)'}],{duration:1200+Math.random()*600, delay:200*i/3, easing:'ease-out'}).finished.then(()=>s.remove());
+      }
+    }
+
+    function timeline(){
+      bar.style.width = '0%';
+      // Title
+      title.animate([{opacity:0, transform:'translateY(24px)'},{opacity:1, transform:'translateY(0)'}],{duration:900, easing:'cubic-bezier(.2,.7,.2,1)'});
+      // progress
+      setTimeout(()=> bar.style.width = '35%', 200);
+
+      // Subtitle
+      setTimeout(()=>{
+        subtitle.animate([{opacity:0, transform:'translateY(18px)'},{opacity:1, transform:'translateY(0)'}],{duration:800, easing:'cubic-bezier(.2,.7,.2,1)'});
+        animateSparkles();
+      }, 800);
+      setTimeout(()=> bar.style.width = '70%', 1000);
+
+      // Closing
+      setTimeout(()=>{
+        closing.animate([{opacity:0},{opacity:1}],{duration:700, easing:'ease-out'});
+        animateSparkles();
+      }, 1700);
+      setTimeout(()=> bar.style.width = '100%', 1800);
+    }
+
+    // Reset initial states so replay works cleanly
+    function resetStates(){
+      title.style.opacity = 0; title.style.transform = 'translateY(24px)';
+      subtitle.style.opacity = 0; subtitle.style.transform = 'translateY(18px)';
+      closing.style.opacity = 0; closing.style.transform = 'none';
+      // After anims, apply end state via onfinish
+      const end = (el)=> el.animate([{opacity:1, transform:'none'}],{duration:1, delay:1900, fill:'forwards'});
+      end(title); end(subtitle); end(closing);
+    }
+
+    // Accessibility: reduce motion if user prefers
+    const media = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    function play(){
+      if(media.matches){
+        // minimal motion
+        title.style.opacity = 1; subtitle.style.opacity = 1; closing.style.opacity = 1; bar.style.width = '100%';
+      } else {
+        resetStates(); timeline();
+      }
+    }
+
+    // Buttons
+    document.getElementById('replay').addEventListener('click', play);
+    document.getElementById('share').addEventListener('click', async () => {
+      try{
+        const shareUrl = window.location.href;
+        await navigator.clipboard.writeText(shareUrl);
+        alert('Link copied! Share it with Monisa.');
+      }catch(e){ alert('Copy failed. You can still share this page URL.'); }
+    });
+
+    // Auto‑play on load
+    window.addEventListener('load', play);
+  </script>
+</body>
+</html>
